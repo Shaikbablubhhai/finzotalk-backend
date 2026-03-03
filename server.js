@@ -5,7 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 /* ===============================
-   🔐 API KEYS FROM RENDER ENV
+   🔐 SAFE ENV KEY LOADING
 ================================= */
 
 const alphaKeys = process.env.ALPHA_KEYS
@@ -16,16 +16,19 @@ const twelveKeys = process.env.TWELVE_KEYS
   ? process.env.TWELVE_KEYS.split(",")
   : [];
 
+console.log("Alpha keys loaded:", alphaKeys.length);
+console.log("Twelve keys loaded:", twelveKeys.length);
+
 /* ===============================
    🧠 In-Memory Cache
 ================================= */
 
 let cache = {};
 let lastFetchTime = {};
-const CACHE_DURATION = 30 * 1000; // 30 seconds
+const CACHE_DURATION = 30 * 1000;
 
 /* ===============================
-   🔁 Fetch From Alpha Vantage
+   🔁 Alpha Fetch
 ================================= */
 
 async function fetchFromAlpha(symbol) {
@@ -41,15 +44,13 @@ async function fetchFromAlpha(symbol) {
       if (price) {
         return { source: "Alpha", price };
       }
-    } catch (err) {
-      continue;
-    }
+    } catch (err) {}
   }
   throw new Error("Alpha failed");
 }
 
 /* ===============================
-   🔁 Fetch From Twelve Data
+   🔁 Twelve Fetch
 ================================= */
 
 async function fetchFromTwelve(symbol) {
@@ -61,22 +62,19 @@ async function fetchFromTwelve(symbol) {
       if (response.data.price) {
         return { source: "TwelveData", price: response.data.price };
       }
-    } catch (err) {
-      continue;
-    }
+    } catch (err) {}
   }
   throw new Error("Twelve failed");
 }
 
 /* ===============================
-   📊 Main Route
+   📊 Route
 ================================= */
 
 app.get("/stock/:symbol", async (req, res) => {
   const symbol = req.params.symbol.toUpperCase();
   const now = Date.now();
 
-  // Serve from cache per symbol
   if (
     cache[symbol] &&
     lastFetchTime[symbol] &&
@@ -89,8 +87,6 @@ app.get("/stock/:symbol", async (req, res) => {
   }
 
   try {
-    console.log("Fetching fresh stock data for:", symbol);
-
     let data;
 
     try {
@@ -106,13 +102,13 @@ app.get("/stock/:symbol", async (req, res) => {
       fromCache: false,
       ...data,
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: "All providers failed" });
   }
 });
 
 /* ===============================
-   🚀 Start Server
+   🚀 Start
 ================================= */
 
 app.listen(PORT, () => {
