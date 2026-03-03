@@ -5,7 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 /* ===============================
-   🔐 SAFE ENV KEY LOADING
+   🔐 Load API Keys From Render
 ================================= */
 
 const alphaKeys = process.env.ALPHA_KEYS
@@ -16,11 +16,11 @@ const twelveKeys = process.env.TWELVE_KEYS
   ? process.env.TWELVE_KEYS.split(",")
   : [];
 
-console.log("Alpha keys loaded:", alphaKeys.length);
-console.log("Twelve keys loaded:", twelveKeys.length);
+console.log("Alpha keys:", alphaKeys.length);
+console.log("Twelve keys:", twelveKeys.length);
 
 /* ===============================
-   🧠 In-Memory Cache
+   🧠 Cache
 ================================= */
 
 let cache = {};
@@ -28,7 +28,7 @@ let lastFetchTime = {};
 const CACHE_DURATION = 30 * 1000;
 
 /* ===============================
-   🔁 Alpha Fetch
+   🔁 Fetch From Alpha
 ================================= */
 
 async function fetchFromAlpha(symbol) {
@@ -50,7 +50,7 @@ async function fetchFromAlpha(symbol) {
 }
 
 /* ===============================
-   🔁 Twelve Fetch
+   🔁 Fetch From Twelve
 ================================= */
 
 async function fetchFromTwelve(symbol) {
@@ -108,7 +108,7 @@ app.get("/stock/:symbol", async (req, res) => {
 });
 
 /* ===============================
-   🚀 Start
+   🚀 Start Server
 ================================= */
 
 app.listen(PORT, () => {
